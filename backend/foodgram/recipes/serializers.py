@@ -1,10 +1,11 @@
+from dataclasses import field
 from django.db.models import F
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from users.serializers import CustomUserSerializer
 from drf_extra_fields.fields import Base64ImageField
 
-from .models import Ingredient, IngredientsInRecipe, Tag, Recipe
+from .models import Ingredient, IngredientsInRecipe, Tag, Recipe, BestRecipes, ShoppingList
 
 User = get_user_model()
 
@@ -27,6 +28,14 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = '__all__'
 
+
+class IngtedientsInRecipe(serializers.ModelSerializer):
+    id = serializers.IntegerField(source = 'ingredient.id')
+    amount = serializers.IntegerField()
+    
+    class Meta:
+        model = IngredientsInRecipe
+        fields = ('id', 'amount')
 
 class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
@@ -116,5 +125,35 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = '__all__'
+
+class ShortSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+class BestRecipesSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = BestRecipes
+        fields = ('user', 'recipe')
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        context = {'request': request}
+        return ShortSerializer(
+            instance.recipe, context=context).data
+
+class ShoppingListSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = ShoppingList
+        fields = ('user', 'recipe')
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        context = {'request': request}
+        return ShortSerializer(
+            instance.recipe, context=context).data
 
  
