@@ -1,10 +1,10 @@
+from djoser.serializers import \
+    UserCreateSerializer as BaseUserRegistrationSerializer
 from drf_extra_fields.fields import Base64ImageField
-from djoser.serializers import (
-    UserCreateSerializer as BaseUserRegistrationSerializer)
+from recipes.models import Recipe
 from rest_framework import serializers
 
-from recipes.models import Recipe
-from .models import User, Follow
+from .models import Follow, User
 
 
 class UserRegistrationSerializer(BaseUserRegistrationSerializer):

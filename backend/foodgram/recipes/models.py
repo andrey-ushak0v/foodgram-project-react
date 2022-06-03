@@ -1,6 +1,6 @@
+from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -53,7 +53,8 @@ class Ingredient(models.Model):
 
 class Recipe(models.Model):
     name = models.CharField(verbose_name='названме рецепта', max_length=100)
-    author = models.ForeignKey(User,
+    author = models.ForeignKey(
+        User,
         on_delete=models.CASCADE,
         verbose_name='Автор'
         )
@@ -76,8 +77,8 @@ class Recipe(models.Model):
         )
     cook_time = models.PositiveIntegerField(
         verbose_name='время приготовления',
-        validators=[MinValueValidator (1, 
-        'слишком малое значение')]
+        validators=[MinValueValidator(
+            1, 'слишком малое значение')]
     )
     pub_date = models.DateTimeField(
         'дата публикации',
@@ -99,7 +100,7 @@ class IngredientsInRecipe(models.Model):
         on_delete=models.CASCADE,
         verbose_name='рецепт',
         related_name='ingredients_amount'
-        ) 
+        )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
@@ -107,10 +108,9 @@ class IngredientsInRecipe(models.Model):
         )
     amount = models.PositiveIntegerField(
         verbose_name='количество',
-        validators=[MinValueValidator(1,
-        'слишком малое значение')]
-        )
-        
+        validators=[MinValueValidator(
+            1, 'слишком малое значение')])
+
     class Meta:
         verbose_name = 'кол-во ингридиентов в рецепте'
         verbose_name_plural = 'кол-во ингридиентов в рецептах'
@@ -171,6 +171,3 @@ class ShoppingList(models.Model):
                 models.UniqueConstraint(
                     fields=['user', 'recipe'], name='unique_basket')
             ]
-    
-
-

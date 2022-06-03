@@ -1,24 +1,37 @@
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, generics, status
-from rest_framework.response import Response
-from .models import Ingredient, IngredientsInRecipe, Recipe, Tag, BestRecipes, ShoppingList
-from .mixins import ListRetriveViewSet
-from .serializers import IngredientListSerializer, IngredientSerializer, RecipeCreateSerializer, RecipeSerializer, TagSerializer, BestRecipesSerializer, ShoppingListSerializer
 from django_filters.rest_framework import DjangoFilterBackend
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
+from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from .filters import CustomSearchFilter, RecipeFilter
+from .mixins import ListRetriveViewSet
+from .models import (BestRecipes, Ingredient, IngredientsInRecipe, Recipe,
+                     ShoppingList, Tag)
+from .serializers import (BestRecipesSerializer, IngredientListSerializer,
+                          IngredientSerializer, RecipeCreateSerializer,
+                          RecipeSerializer, ShoppingListSerializer,
+                          TagSerializer)
 
 
 class IngredientViewSet(ListRetriveViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    filter_backends = [CustomSearchFilter, ]
+    search_fields = ['^name']
+    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     filter_backends = [DjangoFilterBackend]
-    #serializer_class = RecipeSerializer
-    
+    filterset_class = RecipeFilter
+
     def get_serializer_class(self):
         if self.action in ['create', 'partial_update']:
             return RecipeCreateSerializer
@@ -69,10 +82,38 @@ class RecipeViewSet(viewsets.ModelViewSet):
             request=request, pk=pk, model=ShoppingList
         )
 
-    
+    @action(detail=False, methods=["GET"],
+            permission_classes=[IsAuthenticated])
+    def download_shopping_list(self, request):
+        download_list = {}
+        ingredients_in_recipe = IngredientsInRecipe.objects.filter(
+            recipe__purchases__user=request.user).values_list(
+            'ingredient__name', 'ingredient__measurement_unit',
+            'amount')
+        for i in ingredients_in_recipe:
+            name = i[0]
+            download_list[name] = {
+                    'measurement_unit': i[1],
+                    'amount': i[2]
+                }
+        pdfmetrics.registerFont(
+            TTFont('FreeSans', 'media/fonts/FreeSans.ttf'))
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = ('attachment;'
+                                           'filename="shopping_list.pdf"')
+        page = canvas.Canvas(response)
+        page.setFont('FreeSans', size=24)
+        page.drawString(200, 600, "Список ингредиентов.")
+        page.showPage()
+        page.save()
+        return response
+
+
 class TagViewSet(ListRetriveViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
+
 
 class IngredientAmountViewSet(generics.ListAPIView):
     queryset = IngredientsInRecipe.objects.all()

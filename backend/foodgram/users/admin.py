@@ -16,6 +16,3 @@ class FollowAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Follow, FollowAdmin)
-
-
-

@@ -1,19 +1,22 @@
-from dataclasses import field
-from django.db.models import F
 from django.contrib.auth import get_user_model
+from django.db.models import F
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from users.serializers import CustomUserSerializer
-from drf_extra_fields.fields import Base64ImageField
 
-from .models import Ingredient, IngredientsInRecipe, Tag, Recipe, BestRecipes, ShoppingList
+from .models import (BestRecipes, Ingredient, IngredientsInRecipe, Recipe,
+                     ShoppingList, Tag)
 
 User = get_user_model()
+
 
 class IngredientListSerializer(serializers.Serializer):
     id = serializers.IntegerField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.name', read_only=True)
     measurement_unit = serializers.CharField(
-        source='ingredient.measurement_unit', read_only = True)
+        source='ingredient.measurement_unit', read_only=True)
+    amount = serializers.IntegerField()
+
 
 class IngredientSerializer(serializers.ModelSerializer):
 
@@ -23,29 +26,49 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = Tag
         fields = '__all__'
 
 
 class IngtedientsInRecipe(serializers.ModelSerializer):
-    id = serializers.IntegerField(source = 'ingredient.id')
+    id = serializers.IntegerField(source='ingredient.id')
     amount = serializers.IntegerField()
-    
+
     class Meta:
         model = IngredientsInRecipe
         fields = ('id', 'amount')
+
 
 class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     ingredients = IngredientListSerializer(
         many=True, source='ingredients_amount')
     author = CustomUserSerializer(read_only=True)
+    shopping_list = serializers.SerializerMethodField(read_only=True)
+    best_recipes = serializers.SerializerMethodField(read_only=True)
+
+    def get_shoping_list(self, obj):
+        request = self.context.get('request')
+        if not request or request.user.is_anonimus:
+            return False
+        return ShoppingList.objects.filter(
+            recipe_id=obj, user_id=request.user
+        ).exists()
+
+    def get_best_recipes(self, obj):
+        request = self.context.get('request')
+        if not request or request.user.is_anonimus:
+            return False
+        return BestRecipes.objects.filter(
+            recipe_id=obj, user_id=request.user
+        ).exists()
 
     class Meta:
         model = Recipe
         fields = '__all__'
+
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
     image = Base64ImageField(max_length=None, use_url=True)
@@ -67,7 +90,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def validate_cooking_time(self, data):
         if data <= 0:
-            raise serializers.ValidationError('время приготовления не может быть нулевым')
+            raise serializers.ValidationError(
+                'время приготовления не может быть нулевым'
+                )
         return data
 
     def create(self, validated_data):
@@ -80,7 +105,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         recipe.ingredients_amount.set(ingredients_amount)
         recipe.save()
         return recipe
-
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)
@@ -121,10 +145,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 defaults={'amount': amount})
             ingredients_list.append(ing)
         return ingredients_list
-        
+
     class Meta:
         model = Recipe
         fields = '__all__'
+
 
 class ShortSerializer(serializers.ModelSerializer):
 
@@ -132,8 +157,9 @@ class ShortSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
 
+
 class BestRecipesSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = BestRecipes
         fields = ('user', 'recipe')
@@ -144,8 +170,9 @@ class BestRecipesSerializer(serializers.ModelSerializer):
         return ShortSerializer(
             instance.recipe, context=context).data
 
+
 class ShoppingListSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = ShoppingList
         fields = ('user', 'recipe')
@@ -155,5 +182,3 @@ class ShoppingListSerializer(serializers.ModelSerializer):
         context = {'request': request}
         return ShortSerializer(
             instance.recipe, context=context).data
-
- 
