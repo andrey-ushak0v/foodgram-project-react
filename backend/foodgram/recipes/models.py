@@ -75,7 +75,7 @@ class Recipe(models.Model):
         verbose_name='Тэг',
         related_name='tags'
         )
-    cook_time = models.PositiveIntegerField(
+    cooking_time = models.PositiveIntegerField(
         verbose_name='время приготовления',
         validators=[MinValueValidator(
             1, 'слишком малое значение')]

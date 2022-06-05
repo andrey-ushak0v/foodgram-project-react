@@ -1,5 +1,5 @@
-from django.contrib.auth import get_user_model
 from django.db.models import F
+from django.contrib.auth import get_user_model
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from users.serializers import CustomUserSerializer
@@ -49,9 +49,9 @@ class RecipeSerializer(serializers.ModelSerializer):
     shopping_list = serializers.SerializerMethodField(read_only=True)
     best_recipes = serializers.SerializerMethodField(read_only=True)
 
-    def get_shoping_list(self, obj):
+    def get_shopping_list(self, obj):
         request = self.context.get('request')
-        if not request or request.user.is_anonimus:
+        if not request or request.user.is_anonymous:
             return False
         return ShoppingList.objects.filter(
             recipe_id=obj, user_id=request.user
@@ -59,7 +59,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_best_recipes(self, obj):
         request = self.context.get('request')
-        if not request or request.user.is_anonimus:
+        if not request or request.user.is_anonymous:
             return False
         return BestRecipes.objects.filter(
             recipe_id=obj, user_id=request.user

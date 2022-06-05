@@ -1,6 +1,5 @@
-
-from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
@@ -8,6 +7,7 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'password']
     email = models.EmailField(
         verbose_name='email',
+        help_text='введите email',
         unique=True
         )
 
@@ -22,11 +22,16 @@ class Follow(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='follower')
+        related_name='follower',
+        verbose_name='подписчик',
+        help_text='выберите подписчика'
+        )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='following'
+        related_name='following',
+        verbose_name='подписка',
+        help_text='выберите подписку'
         )
 
     class Meta:

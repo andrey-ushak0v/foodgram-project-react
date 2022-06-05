@@ -4,10 +4,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
-from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import generics, status, viewsets
 
 from .filters import CustomSearchFilter, RecipeFilter
 from .mixins import ListRetriveViewSet
@@ -22,14 +22,14 @@ from .serializers import (BestRecipesSerializer, IngredientListSerializer,
 class IngredientViewSet(ListRetriveViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = [CustomSearchFilter, ]
-    search_fields = ['^name']
+    filter_backends = (CustomSearchFilter, )
+    search_fields = ('^name', )
     pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):

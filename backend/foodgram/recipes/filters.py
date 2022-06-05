@@ -4,11 +4,7 @@ from rest_framework.filters import SearchFilter
 from .models import Recipe
 
 
-class CustomSearchFilter(SearchFilter):
-    search_param = 'name'
-
-
-class RecipeFilter(SearchFilter):
+class RecipeFilter(filters.FilterSet):
     tags = filters.AllValuesMultipleFilter(field_name='tags__slug')
     best_recipes = filters.BooleanFilter(method='filter_best_recipes')
     shopping_list = filters.BooleanFilter(
@@ -28,3 +24,7 @@ class RecipeFilter(SearchFilter):
         if self.request.user.is_authenticated and value is True:
             return queryset.filter(purchases__user=self.request.user)
         return queryset
+
+
+class CustomSearchFilter(SearchFilter):
+    search_param = 'name'

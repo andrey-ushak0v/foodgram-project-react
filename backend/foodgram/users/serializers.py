@@ -1,9 +1,9 @@
-from djoser.serializers import \
-    UserCreateSerializer as BaseUserRegistrationSerializer
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import Recipe
+from djoser.serializers import (
+    UserCreateSerializer as BaseUserRegistrationSerializer)
 from rest_framework import serializers
 
+from recipes.models import Recipe
 from .models import Follow, User
 
 
@@ -35,7 +35,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         return Follow.objects.filter(user=user, author=obj).exists()
 
 
-class RecipeSerializer(serializers.ModelSerializer):
+class RecipeSubscribeSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
     image = Base64ImageField()
@@ -70,4 +70,4 @@ class FollowSerializer(serializers.ModelSerializer):
         queryset = Recipe.objects.filter(author=obj)
         if limit:
             queryset = queryset[:int(limit)]
-        return RecipeSerializer(queryset, many=True).data
+        return RecipeSubscribeSerializer(queryset, many=True).data
