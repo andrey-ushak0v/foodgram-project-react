@@ -1,11 +1,13 @@
-from django.db.models import F
 from django.contrib.auth import get_user_model
+from django.db.models import F
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from users.serializers import CustomUserSerializer
+from rest_framework.validators import UniqueTogetherValidator
 
-from .models import (BestRecipes, Ingredient, IngredientsInRecipe, Recipe,
-                     ShoppingList, Tag)
+from foodgram.settings import MIN_VALUE
+from recipes.models import (BestRecipes, Ingredient, IngredientsInRecipe,
+                            Recipe, ShoppingList, Tag)
 
 User = get_user_model()
 
@@ -46,12 +48,14 @@ class RecipeSerializer(serializers.ModelSerializer):
     ingredients = IngredientListSerializer(
         many=True, source='ingredients_amount')
     author = CustomUserSerializer(read_only=True)
-    shopping_list = serializers.SerializerMethodField(read_only=True)
-    best_recipes = serializers.SerializerMethodField(read_only=True)
+    shopping_list = serializers.SerializerMethodField(
+                    read_only=True, method_name='get_shopping_list')
+    best_recipes = serializers.SerializerMethodField(
+                   read_only=True, method_name='get_get_best_recipes')
 
     def get_shopping_list(self, obj):
         request = self.context.get('request')
-        if not request or request.user.is_anonymous:
+        if request.user.is_anonymous:
             return False
         return ShoppingList.objects.filter(
             recipe_id=obj, user_id=request.user
@@ -59,7 +63,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_best_recipes(self, obj):
         request = self.context.get('request')
-        if not request or request.user.is_anonymous:
+        if request.user.is_anonymous:
             return False
         return BestRecipes.objects.filter(
             recipe_id=obj, user_id=request.user
@@ -81,17 +85,18 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def validate_ingredients(self, data):
         ingredients = self.initial_data.get('ingredients')
         if ingredients == []:
-            raise serializers.ValidationError('выберите хотя бы 1 ингредиент.')
+            raise serializers.ValidationError(
+                f'выберите хотя бы {MIN_VALUE} ингредиент')
         for ingredient in ingredients:
-            if int(ingredient['amount']) <= 0:
-                raise serializers.ValidationError('количество не может быть'
-                                                  'меньше 1.')
+            if int(ingredient['amount']) < 1:
+                raise serializers.ValidationError(
+                    f'количество не может быть меньше {MIN_VALUE}')
         return data
 
     def validate_cooking_time(self, data):
         if data <= 0:
             raise serializers.ValidationError(
-                'время приготовления не может быть нулевым'
+                'время приготовления не может быть нулевым или отрицательным'
                 )
         return data
 
@@ -99,7 +104,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         validated_data.pop('ingredients_amount')
         tags = validated_data.pop('tags')
         recipe = super().create(validated_data)
-        ingredients_amount = self.get_ingredients_list(
+        ingredients_amount = self.update_ingredients_list(
             self.initial_data['ingredients'], recipe)
         recipe.tags.set(tags)
         recipe.ingredients_amount.set(ingredients_amount)
@@ -118,14 +123,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             instance.tags.set(tags_data)
         if ingredients_data:
             ing = self.initial_data['ingredients']
-            ingredients = self.get_ingredients_list(
+            ingredients = self.update_ingredients_list(
                 ing,
                 instance)
             instance.ingredients_amount.set(ingredients)
         instance.save()
         return instance
 
-    def get_ingredients_list(self, ingredients, recipe_id):
+    def update_ingredients_list(self, ingredients, recipe_id):
         ingredients_list = []
         ingredients_to_del = IngredientsInRecipe.objects.filter(
             recipe=recipe_id)
@@ -163,6 +168,13 @@ class BestRecipesSerializer(serializers.ModelSerializer):
     class Meta:
         model = BestRecipes
         fields = ('user', 'recipe')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=BestRecipes.objects.all(),
+                fields=('user', 'recipe',),
+                message=('Рецепт уже есть в избранном.')
+            )
+        ]
 
     def to_representation(self, instance):
         request = self.context.get('request')
@@ -176,9 +188,27 @@ class ShoppingListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingList
         fields = ('user', 'recipe')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=ShoppingList.objects.all(),
+                fields=('user', 'recipe',),
+                message=('Рецепт уже есть в корзине.')
+            )
+        ]
 
     def to_representation(self, instance):
         request = self.context.get('request')
         context = {'request': request}
         return ShortSerializer(
             instance.recipe, context=context).data
+
+
+class RecipeSubscribeSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    image = Base64ImageField()
+    cooking_time = serializers.IntegerField()
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')

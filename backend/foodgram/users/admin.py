@@ -7,12 +7,13 @@ User = get_user_model()
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'username', 'first_name', 'last_name', 'email')
-    list_filter = ('username', 'email')
+    list_display = ('id', 'username', 'first_name', 'last_name', 'email',)
+    list_filter = ('username', 'email',)
 
 
 class FollowAdmin(admin.ModelAdmin):
-    list_display = ('user', 'author')
+    list_display = ('user', 'author',)
+    search_fields = ('user',)
 
 
 admin.site.register(Follow, FollowAdmin)

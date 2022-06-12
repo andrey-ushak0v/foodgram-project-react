@@ -1,17 +1,18 @@
 from django.contrib import admin
 
-from .models import (BestRecipes, Ingredient, IngredientsInRecipe, Recipe,
-                     ShoppingList, Tag)
+from recipes.models import (BestRecipes, Ingredient, IngredientsInRecipe,
+                            Recipe, ShoppingList, Tag)
 
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'color', 'slug')
-    fields = ['name', 'color', 'slug']
+    fields = ('name', 'color', 'slug')
+    search_fields = ('name',)
 
 
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
-    search_fields = ['name']
+    search_fields = ('name',)
 
 
 class IngredientRecipeInline(admin.TabularInline):
@@ -23,7 +24,8 @@ class RecipeAdmin(admin.ModelAdmin):
         IngredientRecipeInline,
     ]
     list_display = ('id', 'name', 'author', 'get_ingredients')
-    list_filter = ('name', 'author', 'tags')
+    list_filter = ('name', 'author', 'tags',)
+    search_fields = ('name',)
 
     def get_ingredients(self, obj):
         return '\n'.join(
@@ -32,7 +34,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
 class IngredientsInRecipeAdmin(admin.ModelAdmin):
     list_display = ('ingredient', 'recipe', 'amount')
-    fields = ['ingredient', 'recipe', 'amount']
+    fields = ('ingredient', 'recipe', 'amount',)
 
 
 class BestRecipesAdmin(admin.ModelAdmin):

@@ -6,8 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Follow
-from .serializers import CustomUserSerializer, FollowSerializer
+from users.models import Follow
+from users.serializers import (CustomUserSerializer, FollowSerializer,
+                               FollowWalidateSerializer)
 
 User = get_user_model()
 
@@ -19,48 +20,30 @@ class CustomUserViewSet(UserViewSet):
 
 
 class FollowViewSet(APIView):
-    serializer_class = FollowSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ]
 
-    def post(self, request, *args, **kwargs):
-        user_id = self.kwargs.get('user_id')
-        if user_id == request.user.id:
+    def post(self, request, user_id):
+        user = request.user
+        data = {
+            'user': user.id,
+            'author': user_id
+        }
+        serializer = FollowWalidateSerializer(data=data, context={
+            'request': request})
+        if not serializer.is_valid():
             return Response(
-                {'error': 'Нельзя подписаться на себя'},
+                serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
-        if Follow.objects.filter(
-                user=request.user,
-                author_id=user_id
-        ).exists():
-            return Response(
-                {'error': 'Вы уже подписаны на пользователя'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, user_id):
+        user = request.user
         author = get_object_or_404(User, id=user_id)
-        Follow.objects.create(
-            user=request.user,
-            author_id=user_id
-        )
-        return Response(
-            self.serializer_class(author, context={'request': request}).data,
-            status=status.HTTP_201_CREATED
-        )
-
-    def delete(self, request, *args, **kwargs):
-        user_id = self.kwargs.get('user_id')
-        get_object_or_404(User, id=user_id)
-        subscription = Follow.objects.filter(
-            user=request.user,
-            author_id=user_id
-        )
-        if subscription:
-            subscription.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(
-            {'error': 'Вы не подписаны на пользователя'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        obj = get_object_or_404(Follow, user=user, author=author)
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class FollowListView(ListAPIView):

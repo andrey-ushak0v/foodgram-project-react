@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
+from foodgram.settings import MIN_VALUE
 
 User = get_user_model()
 
@@ -52,7 +53,7 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
-    name = models.CharField(verbose_name='названме рецепта', max_length=100)
+    name = models.CharField(verbose_name='название рецепта', max_length=100)
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -109,7 +110,7 @@ class IngredientsInRecipe(models.Model):
     amount = models.PositiveIntegerField(
         verbose_name='количество',
         validators=[MinValueValidator(
-            1, 'слишком малое значение')])
+            f'{MIN_VALUE}, слишком малое значение')])
 
     class Meta:
         verbose_name = 'кол-во ингридиентов в рецепте'
@@ -118,6 +119,9 @@ class IngredientsInRecipe(models.Model):
             models.UniqueConstraint(
                 fields=['ingredient', 'recipe'], name='unique_recipe')
         ]
+
+    def __str__(self):
+        return self.ingredient
 
 
 class BestRecipes(models.Model):
