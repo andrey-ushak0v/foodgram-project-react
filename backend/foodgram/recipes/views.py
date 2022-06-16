@@ -1,6 +1,8 @@
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from foodgram.settings import FILE_NAME
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -9,7 +11,6 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from foodgram.settings import FILE_NAME
 from recipes.filters import CustomSearchFilter, RecipeFilter
 from recipes.mixins import ListRetriveViewSet
 from recipes.models import (BestRecipes, Ingredient, IngredientsInRecipe,
@@ -38,7 +39,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        if self.action in ['create', 'partial_update']:
+        if self.action in ('create', 'partial_update',):
             return RecipeCreateSerializer
         return RecipeSerializer
 
@@ -87,23 +88,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
             request=request, pk=pk, model=ShoppingList
         )
 
-    @action(detail=False, methods=['GET'],
-            permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=('GET',),
+            permission_classes=(IsAuthenticated,))
     def download_shopping_list(self, request):
-        download_list = {}
         ingredients_in_recipe = IngredientsInRecipe.objects.filter(
             recipe__basket__user=request.user).values_list(
             'ingredient__name', 'ingredient__measurement_unit',
-            'amount')
-        for i in ingredients_in_recipe:
-            name = i[0]
-            if name not in download_list:
-                download_list[name] = {
-                        'measurement_unit': i[1],
-                        'amount': i[2]
-                    }
-            else:
-                download_list[name]['amount'] += i[2]
+            ).order_by(
+                'ingredient__name').annotate(Sum('amount'))
         pdfmetrics.registerFont(
             TTFont('DejaVuSans', 'media/fonts/DejaVuSans.ttf'))
         response = HttpResponse(content_type=CONTENT_TYPE)
@@ -114,20 +106,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
         page.drawString(200, 600, 'Список ингредиентов')
         page.setFont('DejaVuSans', size=16)
         height = 750
-        for i, (name, data) in enumerate(download_list.items(), start=1):
-            page.drawString(75, height, (f'{i}) {name} - {data["amount"]} '
-                                         f'{data["measurement_unit"]}'))
+        for i, item in enumerate(ingredients_in_recipe, start=1):
+            page.drawString(75,
+                            height,
+                            (f'{i}. {item[0]} '
+                             f' {item[2]}'
+                             f' {item[1]}.'))
             height -= 25
         page.showPage()
         page.save()
         return response
 
     def get_permissions(self):
-        if self.action in ['shopping_list', 'download_shopping_list']:
-            permission_classes = [IsAuthenticated]
+        if self.action in ('shopping_list', 'download_shopping_list',):
+            permission_classes = (IsAuthenticated,)
         else:
-            permission_classes = [Author | ReadOnly]
-        return [permission() for permission in permission_classes]
+            permission_classes = (Author | ReadOnly,)
+        return tuple([permission() for permission in permission_classes])
 
 
 class TagViewSet(ListRetriveViewSet):

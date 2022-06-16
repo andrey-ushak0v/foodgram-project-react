@@ -12,7 +12,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
-MIN_VALUE = 1
+MIN_VALUE_AMOUNT = 1
+MIN_VALUE_COOKING_TIME = 1
 FILE_NAME = 'shopping_list.pdf'
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -82,12 +83,6 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#    }
-#}
 
 DATABASES = {
     'default': {

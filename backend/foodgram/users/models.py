@@ -4,7 +4,7 @@ from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'password']
+    REQUIRED_FIELDS = ('username', 'first_name', 'last_name', 'password',)
     email = models.EmailField(
         verbose_name='email',
         help_text='введите email',
@@ -12,7 +12,7 @@ class User(AbstractUser):
         )
 
     class Meta:
-        ordering = ['date_joined']
+        ordering = ('date_joined',)
 
     def __str__(self):
         return self.username
@@ -37,10 +37,10 @@ class Follow(models.Model):
     class Meta:
         verbose_name = 'подписчик'
         verbose_name_plural = 'подписчики'
-        constraints = [
+        constraints = (
             models.UniqueConstraint(
-                fields=['user', 'author'], name='unique_follow')
-        ]
+                fields=('user', 'author'), name='unique_follow'),
+        )
 
     def __str__(self):
         return f'{self.user} подписался на {self.author}'

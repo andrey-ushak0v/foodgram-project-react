@@ -16,11 +16,11 @@ User = get_user_model()
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated,)
 
 
 class FollowViewSet(APIView):
-    permission_classes = [IsAuthenticated, ]
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request, user_id):
         user = request.user
@@ -48,7 +48,7 @@ class FollowViewSet(APIView):
 
 class FollowListView(ListAPIView):
     serializer_class = FollowSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         return User.objects.filter(following__user=self.request.user)

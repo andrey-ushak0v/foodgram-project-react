@@ -1,11 +1,11 @@
 from django.contrib.auth import get_user_model
-from django.db.models import F
+from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from users.serializers import CustomUserSerializer
 from rest_framework.validators import UniqueTogetherValidator
 
-from foodgram.settings import MIN_VALUE
+from foodgram.settings import MIN_VALUE_AMOUNT, MIN_VALUE_COOKING_TIME
 from recipes.models import (BestRecipes, Ingredient, IngredientsInRecipe,
                             Recipe, ShoppingList, Tag)
 
@@ -51,7 +51,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     shopping_list = serializers.SerializerMethodField(
                     read_only=True, method_name='get_shopping_list')
     best_recipes = serializers.SerializerMethodField(
-                   read_only=True, method_name='get_get_best_recipes')
+                   read_only=True, method_name='get_best_recipes')
 
     def get_shopping_list(self, obj):
         request = self.context.get('request')
@@ -86,18 +86,18 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ingredients = self.initial_data.get('ingredients')
         if ingredients == []:
             raise serializers.ValidationError(
-                f'выберите хотя бы {MIN_VALUE} ингредиент')
+                f'выберите хотя бы {MIN_VALUE_AMOUNT} ингредиент')
         for ingredient in ingredients:
-            if int(ingredient['amount']) < 1:
+            if int(ingredient['amount']) < MIN_VALUE_AMOUNT:
                 raise serializers.ValidationError(
-                    f'количество не может быть меньше {MIN_VALUE}')
+                    f'количество не может быть меньше {MIN_VALUE_AMOUNT}')
         return data
 
     def validate_cooking_time(self, data):
-        if data <= 0:
+        if int(data) < MIN_VALUE_COOKING_TIME:
             raise serializers.ValidationError(
-                'время приготовления не может быть нулевым или отрицательным'
-                )
+                'время приготовления'
+                f'не может быть меньше {MIN_VALUE_COOKING_TIME}')
         return data
 
     def create(self, validated_data):
@@ -140,11 +140,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         for ing in ingredients:
             ingredient_id = ing['id']
             amount = ing['amount']
-            ingredient_instance = Ingredient.objects.get(
-                id=ingredient_id)
+            ingredient_instance = get_object_or_404(
+                Ingredient, id=ingredient_id)
             if (IngredientsInRecipe.objects.
                filter(recipe=recipe_id, ingredient_id=ingredient_id).exists()):
-                amount += F('amount')
+                amount += ('amount')
             ing, updated = IngredientsInRecipe.objects.update_or_create(
                 recipe=recipe_id, ingredient=ingredient_instance,
                 defaults={'amount': amount})
@@ -168,13 +168,13 @@ class BestRecipesSerializer(serializers.ModelSerializer):
     class Meta:
         model = BestRecipes
         fields = ('user', 'recipe')
-        validators = [
+        validators = (
             UniqueTogetherValidator(
                 queryset=BestRecipes.objects.all(),
                 fields=('user', 'recipe',),
                 message=('Рецепт уже есть в избранном.')
-            )
-        ]
+            ),
+        )
 
     def to_representation(self, instance):
         request = self.context.get('request')
@@ -188,13 +188,13 @@ class ShoppingListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingList
         fields = ('user', 'recipe')
-        validators = [
+        validators = (
             UniqueTogetherValidator(
                 queryset=ShoppingList.objects.all(),
                 fields=('user', 'recipe',),
                 message=('Рецепт уже есть в корзине.')
-            )
-        ]
+            ),
+        )
 
     def to_representation(self, instance):
         request = self.context.get('request')

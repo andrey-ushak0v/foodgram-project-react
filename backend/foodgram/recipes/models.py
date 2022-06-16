@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
-from foodgram.settings import MIN_VALUE
+from foodgram.settings import MIN_VALUE_COOKING_TIME, MIN_VALUE_AMOUNT
 
 User = get_user_model()
 
@@ -44,7 +44,7 @@ class Ingredient(models.Model):
         )
 
     class Meta:
-        ordering = ['name']
+        ordering = ('name',)
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
 
@@ -78,8 +78,8 @@ class Recipe(models.Model):
         )
     cooking_time = models.PositiveIntegerField(
         verbose_name='время приготовления',
-        validators=[MinValueValidator(
-            1, 'слишком малое значение')]
+        validators=(MinValueValidator(
+            MIN_VALUE_COOKING_TIME, 'слишком малое значение'),)
     )
     pub_date = models.DateTimeField(
         'дата публикации',
@@ -89,7 +89,7 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = 'рецепт'
         verbose_name_plural = 'рецепты'
-        ordering = ['-pub_date']
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return self.name
@@ -109,16 +109,16 @@ class IngredientsInRecipe(models.Model):
         )
     amount = models.PositiveIntegerField(
         verbose_name='количество',
-        validators=[MinValueValidator(
-            f'{MIN_VALUE}, слишком малое значение')])
+        validators=(MinValueValidator(
+            f'{MIN_VALUE_AMOUNT}, слишком малое значение'),))
 
     class Meta:
         verbose_name = 'кол-во ингридиентов в рецепте'
         verbose_name_plural = 'кол-во ингридиентов в рецептах'
-        constraints = [
+        constraints = (
             models.UniqueConstraint(
-                fields=['ingredient', 'recipe'], name='unique_recipe')
-        ]
+                fields=('ingredient', 'recipe',), name='unique_ing_recipe'),
+        )
 
     def __str__(self):
         return self.ingredient
@@ -144,10 +144,10 @@ class BestRecipes(models.Model):
     class Meta:
         verbose_name = 'избранное'
         verbose_name_plural = 'избранное'
-        constraints = [
+        constraints = (
                 models.UniqueConstraint(
-                    fields=['user', 'recipe'], name='unique_recipe')
-            ]
+                    fields=('user', 'recipe',), name='unique_recipe'),
+        )
 
     def __str__(self):
         return f'пользователь {self.user} добавил в избранное {self.recipe}'
@@ -171,7 +171,6 @@ class ShoppingList(models.Model):
     class Meta:
         verbose_name = 'список покупок'
         verbose_name_plural = 'списки покупок'
-        constraints = [
+        constraints = (
                 models.UniqueConstraint(
-                    fields=['user', 'recipe'], name='unique_basket')
-            ]
+                    fields=('user', 'recipe',), name='unique_basket'),)
