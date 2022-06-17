@@ -49,9 +49,9 @@ class RecipeSerializer(serializers.ModelSerializer):
         many=True, source='ingredients_amount')
     author = CustomUserSerializer(read_only=True)
     shopping_list = serializers.SerializerMethodField(
-                    read_only=True, method_name='get_shopping_list')
+        read_only=True, method_name='get_shopping_list')
     best_recipes = serializers.SerializerMethodField(
-                   read_only=True, method_name='get_best_recipes')
+        read_only=True, method_name='get_best_recipes')
 
     def get_shopping_list(self, obj):
         request = self.context.get('request')

@@ -93,8 +93,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_list(self, request):
         ingredients_in_recipe = IngredientsInRecipe.objects.filter(
             recipe__basket__user=request.user).values_list(
-            'ingredient__name', 'ingredient__measurement_unit',
-            ).order_by(
+                'ingredient__name', 'ingredient__measurement_unit',
+        ).order_by(
                 'ingredient__name').annotate(Sum('amount'))
         pdfmetrics.registerFont(
             TTFont('DejaVuSans', 'media/fonts/DejaVuSans.ttf'))

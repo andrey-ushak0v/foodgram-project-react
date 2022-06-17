@@ -38,9 +38,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
 class FollowSerializer(serializers.ModelSerializer):
     recipes = serializers.SerializerMethodField(
-              read_only=True, method_name='get_recipes')
+        read_only=True, method_name='get_recipes')
     recipes_count = serializers.SerializerMethodField(
-                    read_only=True, method_name='get_recipes_count')
+        read_only=True, method_name='get_recipes_count')
 
     class Meta:
         model = User

@@ -9,7 +9,7 @@ class User(AbstractUser):
         verbose_name='email',
         help_text='введите email',
         unique=True
-        )
+    )
 
     class Meta:
         ordering = ('date_joined',)
@@ -25,14 +25,14 @@ class Follow(models.Model):
         related_name='follower',
         verbose_name='подписчик',
         help_text='выберите подписчика'
-        )
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='following',
         verbose_name='подписка',
         help_text='выберите подписку'
-        )
+    )
 
     class Meta:
         verbose_name = 'подписчик'
