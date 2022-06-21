@@ -9,14 +9,14 @@ services:
       - ./.env
 
   frontend:
-    image: andrey0909/infra_frontend
+    image: andrey0901/infra_frontend:v1
     volumes:
       - result_build:/app/result_build/build
     depends_on:
       - db
   
   backend:
-    image: andrey0901/foodgram
+    image: andrey0901/foodgram:v2
     restart: always
     volumes:
       - static_value:/var/html/static/
