@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 MIN_VALUE_AMOUNT = 1
 MIN_VALUE_COOKING_TIME = 1
