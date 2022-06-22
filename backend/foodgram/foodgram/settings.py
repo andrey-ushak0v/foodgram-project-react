@@ -11,9 +11,10 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
+#from dotenv import load_dotenv
+
+#load_dotenv()
 
 MIN_VALUE_AMOUNT = 1
 MIN_VALUE_COOKING_TIME = 1
@@ -27,8 +28,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-
-SECRET_KEY = os.environ.get('SECRET_KEY', 'DEFAULT_PARAM')
+SECRET_KEY = 'h$ltyce5l7i^(f=qqyl*xvf3b+fia@o8vr+mu1a!p*t&c3!^e&'
+#SECRET_KEY = os.environ.get('SECRET_KEY', 'DEFAULT_PARAM')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -90,11 +91,11 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
-        'NAME': os.getenv('DB_NAME', default=None),
-        'USER': os.getenv('POSTGRES_USER', default=None),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', default=None),
-        'HOST': os.getenv('DB_HOST', default=None),
-        'PORT': os.getenv('DB_PORT', default=None)
+        'NAME': os.getenv('DB_NAME', default='postgres'),
+        'USER': os.getenv('POSTGRES_USER', default='postgres'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
+        'HOST': os.getenv('DB_HOST', default='db'),
+        'PORT': os.getenv('DB_PORT', default=5432)
     }
 }
 
