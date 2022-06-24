@@ -1,4 +1,4 @@
-### Foodgram
+# Foodgram
 ![example workflow](https://github.com/andrey-ushak0v/foodgram-project-react/actions/workflows/main.yml/badge.svg)
 # проект создан для того чтобы делиться интересными рецептами с друзьями
 
@@ -28,10 +28,15 @@
 Создайте файл .env в директории infra/ и внестите в него данные:
 
 DB_ENGINE=django.db.backends.postgresql
+
 DB_NAME=django_db
+
 POSTGRES_USER=postgres
+
 POSTGRES_PASSWORD= # установите свой пароль и укажите его в settings.py в default=
+
 DB_HOST=localhost
+
 DB_PORT=5432
 
 ## Действия в GitHub
@@ -40,16 +45,22 @@ DB_PORT=5432
 Чтобы workflow работал корректно, добавьте ключи в настройках GitHub - Settings/Secrets/Actions:
 
 DOCKER_USERNAME=<имя пользователя DockerHub>
+
 DOCKER_PASSWORD=<пароль от DockerHub>
 
 USER=<username для подключения к серверу>
+
 HOST=<IP сервера>
+
 PASSPHRASE=<пароль для сервера, если он установлен>
+
 SSH_KEY=<ваш SSH ключ (для его получения команда: cat ~/.ssh/id_rsa)>
 
 TELEGRAM_TO=<ID чата, в который придет сообщение> - его можно узнать у бота @userinfobot
+
 TELEGRAM_TOKEN=<токен вашего бота> - его можно узнать у бота @BotFather
-Действия на сервере
+
+# Действия на сервере
 
 ## Соберите docker-compose:
 sudo docker-compose up -d --build
@@ -66,7 +77,7 @@ sudo docker-compose up -d --build
 
 ```sudo docker-compose exec backend python manage.py createsuperuser```
 
-Чтобы заполнить базу данных начальными данными списка ингридиетов выполните:
+## Чтобы заполнить базу данных начальными данными списка ингридиетов выполните:
 
 ```sudo docker-compose exec backend python manage.py load_data```
 
@@ -78,6 +89,6 @@ sudo docker-compose up -d --build
 
 Foodgram будет доступен по ссылке - http://<Ваш_IP>/
 
-
+## автор
 Ушаков Андрей - https://github.com/andrey-ushak0v
 
