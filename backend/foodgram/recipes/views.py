@@ -64,33 +64,33 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['POST'],
             permission_classes=[IsAuthenticated])
-    def best_recipes(self, request, pk):
+    def favorite(self, request, pk):
         return self.post_method_for_actions(
             request=request, pk=pk, serializers=BestRecipesSerializer
         )
 
-    @best_recipes.mapping.delete
-    def delete_best_recipes(self, request, pk):
+    @favorite.mapping.delete
+    def delete_favorite(self, request, pk):
         return self.delete_method_for_actions(
             request=request, pk=pk, model=BestRecipes
         )
 
     @action(detail=True, methods=['POST'],
             permission_classes=[IsAuthenticated])
-    def shopping_list(self, request, pk):
+    def shopping_cart(self, request, pk):
         return self.post_method_for_actions(
             request=request, pk=pk, serializers=ShoppingListSerializer
         )
 
-    @shopping_list.mapping.delete
-    def delete_shopping_list(self, request, pk):
+    @shopping_cart.mapping.delete
+    def delete_shopping_cart(self, request, pk):
         return self.delete_method_for_actions(
             request=request, pk=pk, model=ShoppingList
         )
 
     @action(detail=False, methods=('GET',),
             permission_classes=(IsAuthenticated,))
-    def download_shopping_list(self, request):
+    def download_shopping_cart(self, request):
         ingredients_in_recipe = IngredientsInRecipe.objects.filter(
             recipe__basket__user=request.user).values_list(
                 'ingredient__name', 'ingredient__measurement_unit',
@@ -118,7 +118,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return response
 
     def get_permissions(self):
-        if self.action in ('shopping_list', 'download_shopping_list',):
+        if self.action in ('shopping_cart', 'download_shopping_cart',):
             permission_classes = (IsAuthenticated,)
         else:
             permission_classes = (Author | ReadOnly,)
