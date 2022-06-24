@@ -91,5 +91,5 @@ Foodgram будет доступен по ссылке - http://<Ваш_IP>/
 
 ## автор
 Ушаков Андрей - https://github.com/andrey-ushak0v
->>>>>>> c6bfc854fd6659833abc2b9e957d18b8875eecf2
+
 
