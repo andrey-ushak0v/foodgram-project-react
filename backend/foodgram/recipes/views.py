@@ -103,7 +103,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             f'attachment; filename = {FILE_NAME}')
         page = canvas.Canvas(response)
         page.setFont('DejaVuSans', size=24)
-        page.drawString(200, 600, 'Список ингредиентов')
+        page.drawString(50, 100, 'Список ингредиентов')
         page.setFont('DejaVuSans', size=16)
         height = 750
         for i, item in enumerate(ingredients_in_recipe, start=1):
