@@ -6,14 +6,14 @@ from recipes.models import Recipe
 
 class RecipeFilter(filters.FilterSet):
     tags = filters.AllValuesMultipleFilter(field_name='tags__slug')
-    best_recipes = filters.BooleanFilter(method='filter_best_recipes')
-    shopping_list = filters.BooleanFilter(
+    is_favorited = filters.BooleanFilter(method='filter_best_recipes')
+    is_in_shopping_cart = filters.BooleanFilter(
         method='filter_shopping_list'
     )
 
     class Meta:
         model = Recipe
-        fields = ('tags', 'author', 'best_recipes', 'shopping_list')
+        fields = ('tags', 'author', 'is_favorited', 'is_in_shopping_cart')
 
     def filter_best_recipes(self, queryset, name, value):
         if self.request.user.is_authenticated and value is True:
@@ -22,7 +22,7 @@ class RecipeFilter(filters.FilterSet):
 
     def filter_shopping_list(self, queryset, name, value):
         if self.request.user.is_authenticated and value is True:
-            return queryset.filter(purchases__user=self.request.user)
+            return queryset.filter(basket__user=self.request.user)
         return queryset
 
 

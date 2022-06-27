@@ -7,12 +7,13 @@ from recipes.models import (BestRecipes, Ingredient, IngredientsInRecipe,
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'color', 'slug')
     fields = ('name', 'color', 'slug')
-    search_fields = ('name',)
+    search_fields = ('name', 'color', 'slug',)
 
 
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
-    search_fields = ('name',)
+    search_fields = ('measurement_unit', 'name',)
+    list_filter = ('measurement_unit',)
 
 
 class IngredientRecipeInline(admin.TabularInline):
@@ -24,8 +25,8 @@ class RecipeAdmin(admin.ModelAdmin):
         IngredientRecipeInline,
     ]
     list_display = ('id', 'name', 'author', 'get_ingredients')
-    list_filter = ('name', 'author', 'tags',)
-    search_fields = ('name',)
+    list_filter = ('tags',)
+    search_fields = ('name', 'author__username', 'author__email',)
 
     def get_ingredients(self, obj):
         return '\n'.join(
@@ -35,14 +36,18 @@ class RecipeAdmin(admin.ModelAdmin):
 class IngredientsInRecipeAdmin(admin.ModelAdmin):
     list_display = ('ingredient', 'recipe', 'amount')
     fields = ('ingredient', 'recipe', 'amount',)
+    search_fields = ('recipe__name', 'ingredient__name',)
 
 
 class BestRecipesAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe')
+    search_fields = (
+        'user__username', 'user__email', 'recipe__name',)
 
 
 class ShoppingListAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe')
+    search_fields = ('user__username', 'user__email', 'recipe__name',)
 
 
 admin.site.register(Tag, TagAdmin)
